@@ -3,10 +3,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using PortfolioAdvisor;
 
-bool verbose = args.Contains("--verbose");
-bool debug = args.Contains("--debug");
-
-// ─── Sub-agent: Portfolio Analysis────────────────────────────────────────────
+// ─── Sub-agent: Portfolio Analysis ────────────────────────────────────────────
 //
 // This agent owns the PowerShell-hosted tools for crunching portfolio data.
 // It is NOT user-facing — the orchestrator calls it as a tool via AsAIFunction().
@@ -71,14 +68,6 @@ Console.WriteLine("║  Press Ctrl+C to exit.                                   
 Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 
-var toolStatusMap = new Dictionary<string, string>
-{
-    ["portfolio_analyst"] = "📊 Analyzing your portfolio...",
-    ["get_portfolio_summary"] = "📊 Retrieving portfolio summary...",
-    ["get_sector_breakdown"] = "📊 Calculating sector breakdown...",
-    ["get_top_holdings"] = "📊 Finding top holdings...",
-};
-
 while (!cts.Token.IsCancellationRequested)
 {
     Console.ForegroundColor = ConsoleColor.Cyan;
@@ -99,41 +88,6 @@ while (!cts.Token.IsCancellationRequested)
         await foreach (AgentResponseUpdate update in
             orchestrator.RunStreamingAsync(input, session, cancellationToken: cts.Token))
         {
-            foreach (var content in update.Contents)
-            {
-                if (content is FunctionCallContent call)
-                {
-                    if (debug)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine($"\n  [Call: {call.Name}({FormatArgs(call.Arguments)})]");
-                        Console.ResetColor();
-                    }
-                    else
-                    {
-                        string status = toolStatusMap.GetValueOrDefault(call.Name, "⏳ Processing...");
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write($"\n  {status}");
-                        Console.ResetColor();
-                    }
-                }
-                else if (content is FunctionResultContent)
-                {
-                    if (debug)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine("  [Result received]");
-                        Console.ResetColor();
-                    }
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                        Console.WriteLine(" ✅");
-                        Console.ResetColor();
-                    }
-                }
-            }
-
             if (update.ResponseId is null && update.Text.Length > 0)
                 Console.Write(update.Text);
         }
@@ -153,9 +107,3 @@ while (!cts.Token.IsCancellationRequested)
 }
 
 Console.WriteLine("\nGoodbye! 👋");
-
-static string FormatArgs(IDictionary<string, object?>? arguments)
-{
-    if (arguments is null || arguments.Count == 0) return "{}";
-    return "{" + string.Join(", ", arguments.Select(kvp => $"{kvp.Key}: {kvp.Value}")) + "}";
-}
