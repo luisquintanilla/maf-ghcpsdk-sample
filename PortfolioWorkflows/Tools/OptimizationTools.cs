@@ -14,6 +14,18 @@ namespace PortfolioWorkflows;
 /// </summary>
 internal static class OptimizationTools
 {
+    private static readonly string ProjectDir =
+        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+
+    private static readonly string ChartsDir = InitDir("charts");
+
+    private static string InitDir(string name)
+    {
+        var dir = Path.Combine(ProjectDir, name);
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     private static readonly string MarketDataPath = Path.Combine(
         AppContext.BaseDirectory, "data", "market_data.json");
 
@@ -193,9 +205,7 @@ internal static class OptimizationTools
             .WithXAxisStyle<double, double, double>(Title: Plotly.NET.Title.init("Volatility (%)"))
             .WithYAxisStyle<double, double, double>(Title: Plotly.NET.Title.init("Expected Return (%)"));
 
-        string chartsDir = Path.Combine(AppContext.BaseDirectory, "charts");
-        Directory.CreateDirectory(chartsDir);
-        string htmlPath = Path.Combine(chartsDir, "efficient-frontier.html");
+        string htmlPath = Path.Combine(ChartsDir, "efficient-frontier.html");
         Plotly.NET.GenericChartExtensions.SaveHtml(combined, htmlPath);
 
         return JsonSerializer.Serialize(new { chartPath = htmlPath, points = frontierVols.Count });
