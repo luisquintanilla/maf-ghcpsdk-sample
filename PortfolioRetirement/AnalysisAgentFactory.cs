@@ -38,6 +38,12 @@ internal static class AnalysisAgentFactory
                 "use your tools to retrieve the data and present it clearly. " +
                 "Always include actual numbers from the tools — never fabricate data. " +
                 "Format currency values with dollar signs and two decimal places. " +
-                "Keep responses factual and data-driven.");
+                "Keep responses factual and data-driven. " +
+                "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+                "When you must use a technical term, explain it in parentheses " +
+                "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+                "Frame numbers in terms of real-world impact " +
+                "(e.g., \"This could save you about $3,200 per year\" not " +
+                "\"The tax alpha is 32 basis points\").");
     }
 }

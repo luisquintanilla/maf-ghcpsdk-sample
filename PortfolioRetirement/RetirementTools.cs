@@ -14,8 +14,19 @@ namespace PortfolioRetirement;
 /// </summary>
 internal static class RetirementTools
 {
+    private static readonly string ProjectDir =
+        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+
+    private static readonly string ChartsDir = InitDir("charts");
+
+    private static string InitDir(string name)
+    {
+        var dir = Path.Combine(ProjectDir, name);
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     private static readonly string DataDir = Path.Combine(AppContext.BaseDirectory, "data");
-    private static readonly string ChartsDir = Path.Combine(AppContext.BaseDirectory, "charts");
 
     [Description("Runs a Monte Carlo simulation of portfolio growth and returns percentile outcomes, probability of reaching the $2M goal, and mean final value")]
     public static string RunMonteCarlo(
