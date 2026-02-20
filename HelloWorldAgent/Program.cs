@@ -3,7 +3,10 @@ using HelloWorldAgent;             // GreetingTools
 using Microsoft.Agents.AI;        // AIAgent, AgentSession, AgentResponseUpdate
 using Microsoft.Extensions.AI;    // AIFunctionFactory, TextContent
 
-// ─── Tool registration ────────────────────────────────────────────────────────
+bool verbose = args.Contains("--verbose");
+bool debug = args.Contains("--debug");
+
+// ─── Tool registration────────────────────────────────────────────────────────
 //
 // AIFunctionFactory.Create wraps a delegate into an AIFunction.  It uses
 // reflection on the underlying MethodInfo to extract [Description] attributes
@@ -46,7 +49,13 @@ AIAgent agent = client.AsAIAgent(
         "You are a friendly greeting assistant. " +
         "Use the get_greeting tool whenever asked to greet or say hello to someone. " +
         "Use the get_current_time tool whenever asked about the current time or date. " +
-        "Keep your responses concise and warm.");
+        "Keep your responses concise and warm. " +
+        "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+        "When you must use a technical term, explain it in parentheses " +
+        "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+        "Frame numbers in terms of real-world impact " +
+        "(e.g., \"This could save you about $3,200 per year\" not " +
+        "\"The tax alpha is 32 basis points\").");
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 //
@@ -76,6 +85,12 @@ Console.WriteLine("║  Press Ctrl+C to exit.                                   
 Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 
+var toolStatusMap = new Dictionary<string, string>
+{
+    ["get_greeting"] = "👋 Preparing a greeting...",
+    ["get_current_time"] = "🕐 Checking the time...",
+};
+
 while (!cts.Token.IsCancellationRequested)
 {
     Console.ForegroundColor = ConsoleColor.Cyan;
@@ -103,6 +118,41 @@ while (!cts.Token.IsCancellationRequested)
         await foreach (AgentResponseUpdate update in
             agent.RunStreamingAsync(input, session, cancellationToken: cts.Token))
         {
+            foreach (var content in update.Contents)
+            {
+                if (content is FunctionCallContent call)
+                {
+                    if (debug)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine($"\n  [Call: {call.Name}({FormatArgs(call.Arguments)})]");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        string status = toolStatusMap.GetValueOrDefault(call.Name, "⏳ Processing...");
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.Write($"\n  {status}");
+                        Console.ResetColor();
+                    }
+                }
+                else if (content is FunctionResultContent)
+                {
+                    if (debug)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine("  [Result received]");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.WriteLine(" ✅");
+                        Console.ResetColor();
+                    }
+                }
+            }
+
             if (update.ResponseId is null && update.Text.Length > 0)
                 Console.Write(update.Text);
         }
@@ -122,3 +172,9 @@ while (!cts.Token.IsCancellationRequested)
 }
 
 Console.WriteLine("\nGoodbye! \ud83d\udc4b");
+
+static string FormatArgs(IDictionary<string, object?>? arguments)
+{
+    if (arguments is null || arguments.Count == 0) return "{}";
+    return "{" + string.Join(", ", arguments.Select(kvp => $"{kvp.Key}: {kvp.Value}")) + "}";
+}
