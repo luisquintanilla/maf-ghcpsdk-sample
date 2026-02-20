@@ -1,54 +1,25 @@
-# Hello-World Agent
+# GitHub Copilot SDK + Microsoft Agent Framework — Sample Collection
 
-A minimal C# sample demonstrating how to build an interactive CLI agent using:
+A progressive collection of C# samples showing how to build multi-agent AI applications using the **GitHub Copilot SDK** and **Microsoft Agent Framework (MAF)**. Each sample builds on the previous one, introducing new concepts.
 
-- **[GitHub Copilot SDK](https://github.com/github/copilot-sdk)** — provides the CLI runtime, auth (via `gh`), model access, and tool dispatch
-- **[Microsoft Agent Framework](https://github.com/microsoft/agent-framework)** — provides the `AIAgent` abstraction, session management, and streaming API
-- **[Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)** — shared primitive (`AIFunctionFactory`) for defining tools
+## 🎓 Learning Path
 
-The agent responds to natural language and calls two tools: `get_greeting` and `get_current_time`.
+| # | Sample | Concepts | Branch |
+|---|--------|----------|--------|
+| 1 | [HelloWorldAgent](HelloWorldAgent/) | Single agent, tools, streaming REPL | `main` |
+| 2 | [PortfolioAdvisor](PortfolioAdvisor/) | Multi-agent orchestration, agent-as-tool | `main` |
+| 3 | [PortfolioOptimizer](PortfolioOptimizer/) | Z3 solver, PowerShell tools, HITL approval, charts | `feature/portfolio-optimizer` |
+| 4 | [PortfolioTaxAdvisor](PortfolioTaxAdvisor/) | Tax-lot optimization, constraint modeling, waterfall charts | `feature/portfolio-tax-advisor` |
+| 5 | [PortfolioWorkflows](PortfolioWorkflows/) | `AgentWorkflowBuilder`, sequential & concurrent workflows, intent classification | `feature/portfolio-workflows` |
+| 6 | [PortfolioRetirement](PortfolioRetirement/) | Monte Carlo simulation, SIMD vectorization, probability charts | `feature/portfolio-retirement` |
 
-## Architecture
+## Stack
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  User (REPL — Console.ReadLine)                             │
-└────────────────────┬────────────────────────────────────────┘
-                     │ input string
-                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  GitHubCopilotAgent  (AIAgent — Microsoft Agent Framework)  │
-│                                                             │
-│  Backed by: CopilotClient (GitHub Copilot SDK)              │
-│  Auth:      gh CLI logged-in user                           │
-│  Model:     gpt-4.1 (or whatever Copilot selects)           │
-│                                                             │
-│  ┌─────────────────┐   ┌──────────────────────────────┐    │
-│  │ get_greeting    │   │ get_current_time             │    │
-│  │ (AIFunction)    │   │ (AIFunction)                 │    │
-│  │                 │   │                              │    │
-│  │ GreetingTools   │   │ GreetingTools                │    │
-│  │ .GetGreeting()  │   │ .GetCurrentTime()            │    │
-│  └─────────────────┘   └──────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────┘
-                     │ streaming AgentResponseUpdates
-                     ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Console output (streamed token-by-token)                   │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Integration seam
-
-The `Microsoft.Agents.AI.GitHub.Copilot` bridge package provides a
-`CopilotClient.AsAIAgent(tools, instructions)` extension method that wraps
-`CopilotClient` as a `GitHubCopilotAgent` — a first-party `AIAgent` implementation.
-This means:
-
-- Only **two NuGet packages** are needed (everything else is transitive)
-- Auth is handled entirely by the `gh` CLI — no API keys to manage
-- The result IS a proper `AIAgent`, so it participates in Agent Framework's
-  multi-agent patterns out of the box
+- **[GitHub Copilot SDK](https://github.com/github/copilot-sdk)** — CLI runtime, auth (via `gh`), model access, and tool dispatch
+- **[Microsoft Agent Framework](https://github.com/microsoft/agent-framework)** — `AIAgent` abstraction, sessions, streaming, workflows
+- **[Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)** — `AIFunctionFactory` for defining tools
+- **[Microsoft Z3](https://github.com/Z3Prover/z3)** — constraint solver for portfolio optimization (Samples 3–5)
+- **[Plotly.NET](https://plotly.net)** — interactive charts (Samples 3–6)
 
 ## Prerequisites
 
@@ -57,98 +28,81 @@ This means:
 | [.NET 8 SDK](https://dot.net) or later | `dotnet --version` |
 | [GitHub CLI](https://cli.github.com) | `gh --version` |
 | GitHub Copilot subscription | Required for model access |
-
-Authenticate the CLI before running:
+| [Pandoc](https://pandoc.org) + [Typst](https://typst.app) | *Optional* — for PDF report generation |
 
 ```bash
 gh auth login
 ```
 
-## Run
+## Quick Start
 
 ```bash
-cd HelloWorldAgent
-dotnet run
+# Sample 1 — Hello World
+cd HelloWorldAgent && dotnet run
+
+# Sample 3 — Portfolio Optimizer (on its feature branch)
+git checkout feature/portfolio-optimizer
+cd PortfolioOptimizer && dotnet run
+
+# With verbose/debug modes (Samples 1–6)
+dotnet run -- --verbose    # per-agent output + status indicators
+dotnet run -- --debug      # raw function calls and arguments
 ```
 
-## Example session
+## Architecture Progression
 
 ```
-╔══════════════════════════════════════════════════════════╗
-║  🤖  Greeting Agent — Hello-World Sample                  ║
-║      GitHub Copilot SDK + Microsoft Agent Framework      ║
-╠══════════════════════════════════════════════════════════╣
-║  Try: 'Say hello to Alice'  or  'What time is it?'       ║
-║  Press Ctrl+C to exit.                                   ║
-╚══════════════════════════════════════════════════════════╝
+Sample 1: Single Agent
+  User → Agent (2 tools) → Response
 
-You: Say hello to Alice
+Sample 2: Multi-Agent Orchestration
+  User → Orchestrator → Agent-as-tool (Analysis)
+                       → Agent-as-tool (Advisor)
 
-Agent: Hello, Alice! 👋 Great to meet you!
+Samples 3–4: Specialist Agents + Solver Tools
+  User → Orchestrator → Analysis Agent (PowerShell tools)
+                       → Optimization Agent (Z3 + Plotly)
+                       → HITL approval gate
 
-You: What time is it?
+Sample 5: Workflow Orchestration
+  User → Intent Classifier (LLM triage)
+       → Sequential Workflow: Analysis → Optimization → Tax → Summary
+       → Concurrent Workflow: Analysis ∥ Tax ∥ Retirement
 
-Agent: It's 3:27 PM on Wednesday, February 19, 2026.
-
-You: Now greet Bob too
-
-Agent: Hello, Bob! 👋 Great to meet you!
+Sample 6: Simulation Engine
+  User → Orchestrator → Analysis Agent
+                       → Retirement Agent (Monte Carlo + SIMD)
+                       → HITL approval gate
 ```
 
-## Project structure
+## Report Generation (Samples 3–6)
+
+Each sample can generate HTML and PDF reports after any analysis:
 
 ```
-HelloWorldAgent/
-├── HelloWorldAgent.csproj   — .NET 8 console app, NuGet references
-├── Program.cs               — Agent wiring + interactive REPL loop
-└── GreetingTools.cs         — Pure tool implementations (no AI dependencies)
+💾 Save report? (y/n): y
+  📄 HTML report: reports/report-20250219-153200.html
+  📄 PDF report:  reports/report-20250219-153200.pdf
 ```
 
-## Key NuGet packages
+- **HTML** — styled report with embedded interactive Plotly charts
+- **PDF** — via pandoc + typst (install with `winget install --id=Typst.Typst`)
 
-| Package | Version | Role |
-|---|---|---|
-| `GitHub.Copilot.SDK` | 0.1.25 | `CopilotClient`, tool dispatch, CLI process management |
-| `Microsoft.Agents.AI.GitHub.Copilot` | 1.0.0-preview | Bridge: `AsAIAgent()` extension method |
-| *(transitive)* `Microsoft.Agents.AI.Abstractions` | 1.0.0-preview | `AIAgent`, `AgentSession`, `AgentResponseUpdate` |
-| *(transitive)* `Microsoft.Extensions.AI.Abstractions` | 10.3.0 | `AIFunctionFactory`, `AIFunction`, `TextContent` |
+## Key NuGet Packages
 
-> **Note:** Both SDKs are in preview / technical preview and may have breaking changes.
+| Package | Role |
+|---|---|
+| `GitHub.Copilot.SDK` | `CopilotClient`, tool dispatch, CLI process management |
+| `Microsoft.Agents.AI.GitHub.Copilot` | Bridge: `AsAIAgent()` extension method |
+| `Microsoft.Agents.AI.Workflows` | `AgentWorkflowBuilder` for sequential/concurrent orchestration |
+| `Microsoft.PowerShell.SDK` | Host PowerShell tools in-process |
+| `Microsoft.Z3` | Constraint solver for optimization problems |
+| `Plotly.NET.CSharp` | Interactive chart generation |
 
-## Extending this sample
+> **Note:** Both SDKs are in preview and may have breaking changes.
 
-### Add a new tool
+## Related
 
-1. Add a method to `GreetingTools.cs` (or a new `*Tools.cs` class):
-
-```csharp
-[Description("Tells a programming joke")]
-public static string TellJoke() => "Why do programmers prefer dark mode? Because light attracts bugs! 🐛";
-```
-
-2. Register it in `Program.cs`:
-
-```csharp
-AIFunction jokeTool = AIFunctionFactory.Create(
-    (Func<string>)GreetingTools.TellJoke,
-    name: "tell_joke",
-    description: "Tells a programming joke");
-```
-
-3. Pass it to `AsAIAgent(tools: [greetTool, timeTool, jokeTool], ...)`.
-
-### Future: multi-agent architecture
-
-The end-goal architecture this sample points toward:
-
-```
-GitHubCopilotAgent  (user-facing orchestrator — this file)
-  ├─ Tool: GreetingAgent.AsAgentTool()   ← dedicated ChatClientAgent
-  ├─ Tool: WeatherAgent.AsAgentTool()    ← dedicated ChatClientAgent
-  └─ Tool: SearchAgent  (A2A remote)     ← hosted separately via MapA2A()
-```
-
-Agent Framework supports three escalation patterns:
-- **Agent-as-tool** (local): wrap any `AIAgent` as an `AIFunction` for another agent to call
-- **A2A protocol** (remote): host agents over HTTP with `MapA2A()`, call via `A2AAgent`
-- **Workflow API**: compose agents sequentially or concurrently with checkpointing
+- [GitHub Copilot SDK docs](https://github.com/github/copilot-sdk)
+- [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)
+- [Epic issue tracking this collection](https://github.com/luisquintanilla/maf-ghcpsdk-sample/issues/6)
