@@ -8,9 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GitHub.Copilot.SDK" Version="0.1.18" />
-    <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-preview.260212.1" />
-    <PackageReference Include="Microsoft.Agents.AI.GitHub.Copilot" Version="1.0.0-preview.260212.1" />
+    <PackageReference Include="GitHub.Copilot.SDK" Version="0.1.23" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-rc1" />
+    <PackageReference Include="Microsoft.Agents.AI.GitHub.Copilot" Version="1.0.0-preview.260219.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.0.0-rc1" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.7" />
     <PackageReference Include="Microsoft.Z3" Version="4.12.2" />
     <PackageReference Include="Plotly.NET.CSharp" Version="0.12.1" />

@@ -2,16 +2,17 @@
 
 The fifth sample in the progressive multi-agent learning path. This project
 demonstrates how to compose multiple specialist agents into **sequential** and
-**concurrent** workflows using MAF's agent-as-tool pattern.
+**concurrent** workflows using MAF's `AgentWorkflowBuilder` API.
 
 ## What This Sample Teaches
 
 | Concept | Description |
 |---------|-------------|
-| **Deterministic orchestration** | Execution order is enforced by the orchestrator's system prompt, not decided ad-hoc by the LLM |
-| **Sequential pipeline** | Agents run one after another — each builds on the previous output |
-| **Concurrent pipeline** | Multiple agents run in a single turn — the LLM calls all tools at once |
-| **Agent-as-tool composition** | Each specialist agent is wrapped as an `AIFunction` and given to an orchestrator |
+| **AgentWorkflowBuilder** | MAF's built-in API for composing agents into sequential and concurrent workflows |
+| **Sequential pipeline** | `BuildSequential` — agents run one after another, output feeds the next |
+| **Concurrent pipeline** | `BuildConcurrent` — agents run in parallel, outputs are aggregated |
+| **InProcessExecution** | `RunStreamingAsync` executes workflows with streaming event output |
+| **WorkflowEvent streaming** | `AgentResponseUpdateEvent`, `WorkflowOutputEvent`, `WorkflowErrorEvent` |
 | **Five specialist agents** | Analysis, Optimization, Tax, Retirement, and Summary |
 
 ## Architecture
@@ -23,19 +24,16 @@ User
   │
   ▼
 ┌──────────────────────────────────────────────┐
-│         Sequential Orchestrator              │
-│  (system prompt enforces strict order)       │
+│     AgentWorkflowBuilder.BuildSequential     │
 │                                              │
-│  1. portfolio_analyst ────────────────┐      │
-│  2. portfolio_optimizer ──────────────┤      │
-│  3. tax_advisor ──────────────────────┤      │
-│  4. plan_summarizer ──────────────────┘      │
+│  Analysis → Optimization → Tax → Summary     │
 │                                              │
-│  Each step's output feeds the next           │
+│  Each agent's output becomes the next        │
+│  agent's input automatically                 │
 └──────────────────────────────────────────────┘
 ```
 
-The orchestrator calls each agent in strict order:
+The workflow engine chains agents in order:
 1. **Analysis Agent** — retrieves portfolio summary, sector breakdown, top holdings
 2. **Optimization Agent** — runs Z3 solver for optimal allocation weights
 3. **Tax Agent** — analyses asset location and tax-loss harvesting
@@ -48,54 +46,68 @@ User
   │
   ▼
 ┌──────────────────────────────────────────────┐
-│         Concurrent Orchestrator              │
-│  (system prompt: call all tools at once)     │
+│     AgentWorkflowBuilder.BuildConcurrent     │
 │                                              │
-│  ┌─ portfolio_analyst ───┐                   │
-│  ├─ tax_advisor ─────────┤  (parallel)       │
-│  └─ retirement_projector ┘                   │
+│  ┌─ Analysis Agent ──────┐                   │
+│  ├─ Tax Agent ───────────┤  (parallel)       │
+│  └─ Retirement Agent ────┘                   │
 │                                              │
-│  Unified annual review report                │
+│  Outputs aggregated automatically            │
 └──────────────────────────────────────────────┘
 ```
 
-The orchestrator invokes all three tools in a single turn, then combines
-the results into an annual portfolio review report.
+All three agents receive the same input and run in parallel. The workflow
+engine aggregates their outputs automatically.
 
 ## Key Concepts
 
-### Deterministic vs LLM-Driven Orchestration
+### AgentWorkflowBuilder vs Agent-as-Tool
 
-In prior samples (PortfolioAdvisor), a single orchestrator agent decides
-*when* and *whether* to call sub-agents based on the user's question. This
-is flexible but non-deterministic.
+In prior samples (PortfolioAdvisor), a single orchestrator agent wraps
+sub-agents as `AIFunction` tools and decides *when* and *whether* to call
+them based on the user's question.
 
-In **workflow-style orchestration**, the system prompt enforces a fixed
-execution order. The LLM still generates natural-language output between
-steps, but the *sequence of tool calls* is predetermined. This gives you:
-
-- **Predictable execution** — the same steps run every time
-- **Auditability** — you know exactly which agents ran and in what order
-- **Composability** — pipelines can be assembled from reusable agents
-
-### Agent-as-Tool Pattern
-
-Since the MAF `AgentWorkflowBuilder` API is not yet publicly available, this
-sample uses the proven **agent-as-tool** pattern:
+With **AgentWorkflowBuilder**, the execution topology is defined
+**declaratively** in code — no orchestrator LLM is needed:
 
 ```csharp
-// Wrap a specialist agent as a callable tool
-AIFunction analysisFunction = analysisAgent.AsAIFunction(
-    new AIFunctionFactoryOptions { Name = "portfolio_analyst", ... });
+// Sequential: output of each agent feeds the next
+Workflow pipeline = AgentWorkflowBuilder.BuildSequential(
+    "Rebalancing Pipeline",
+    new[] { analysisAgent, optimizationAgent, taxAgent, summaryAgent });
 
-// Give it to an orchestrator whose instructions enforce call order
-AIAgent orchestrator = client.AsAIAgent(
-    tools: [analysisFunction, optimizationFunction, taxFunction, summaryFunction],
-    instructions: "Call these tools in strict order: 1, 2, 3, 4...");
+// Concurrent: all agents get the same input, run in parallel
+Workflow review = AgentWorkflowBuilder.BuildConcurrent(
+    "Annual Portfolio Review",
+    new[] { analysisAgent, taxAgent, retirementAgent });
 ```
 
-This achieves the same deterministic pipeline behavior while staying within
-the current public API surface.
+### Streaming Workflow Execution
+
+Workflows are executed with `InProcessExecution.RunStreamingAsync` and produce
+a stream of `WorkflowEvent` objects:
+
+```csharp
+await using StreamingRun run = await InProcessExecution.RunStreamingAsync(
+    workflow, new List<ChatMessage> { new(ChatRole.User, input) });
+
+await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+
+await foreach (WorkflowEvent evt in run.WatchStreamAsync())
+{
+    if (evt is AgentResponseUpdateEvent e)
+        Console.Write(e.Update.Text);      // streaming text from each agent
+    else if (evt is WorkflowOutputEvent)
+        break;                              // workflow complete
+    else if (evt is WorkflowErrorEvent err)
+        Console.WriteLine(err.Exception);   // error handling
+}
+```
+
+This gives you:
+- **Predictable execution** — the topology is fixed at build time
+- **Streaming per-agent output** — see each agent's response as it streams
+- **Built-in error handling** — `WorkflowErrorEvent` surfaces failures
 
 ## Specialist Agents
 
