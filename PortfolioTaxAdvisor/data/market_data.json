@@ -1,0 +1,37 @@
+{
+  "assets": {
+    "AAPL": { "expectedReturn": 0.12, "volatility": 0.25, "dividendYield": 0.005, "sector": "Technology" },
+    "MSFT": { "expectedReturn": 0.11, "volatility": 0.22, "dividendYield": 0.008, "sector": "Technology" },
+    "NVDA": { "expectedReturn": 0.18, "volatility": 0.45, "dividendYield": 0.001, "sector": "Technology" },
+    "GOOGL": { "expectedReturn": 0.10, "volatility": 0.24, "dividendYield": 0.0, "sector": "Technology" },
+    "AMZN": { "expectedReturn": 0.13, "volatility": 0.28, "dividendYield": 0.0, "sector": "Technology" },
+    "JNJ": { "expectedReturn": 0.07, "volatility": 0.15, "dividendYield": 0.028, "sector": "Healthcare" },
+    "UNH": { "expectedReturn": 0.10, "volatility": 0.20, "dividendYield": 0.013, "sector": "Healthcare" },
+    "PFE": { "expectedReturn": 0.05, "volatility": 0.22, "dividendYield": 0.055, "sector": "Healthcare" },
+    "ABBV": { "expectedReturn": 0.08, "volatility": 0.20, "dividendYield": 0.038, "sector": "Healthcare" },
+    "JPM": { "expectedReturn": 0.09, "volatility": 0.20, "dividendYield": 0.025, "sector": "Financials" },
+    "GS": { "expectedReturn": 0.10, "volatility": 0.25, "dividendYield": 0.022, "sector": "Financials" },
+    "BRK.B": { "expectedReturn": 0.09, "volatility": 0.18, "dividendYield": 0.0, "sector": "Financials" },
+    "V": { "expectedReturn": 0.11, "volatility": 0.20, "dividendYield": 0.007, "sector": "Financials" },
+    "XOM": { "expectedReturn": 0.08, "volatility": 0.22, "dividendYield": 0.035, "sector": "Energy" },
+    "CVX": { "expectedReturn": 0.07, "volatility": 0.22, "dividendYield": 0.038, "sector": "Energy" },
+    "NEE": { "expectedReturn": 0.09, "volatility": 0.20, "dividendYield": 0.027, "sector": "Energy" },
+    "PG": { "expectedReturn": 0.07, "volatility": 0.14, "dividendYield": 0.024, "sector": "Consumer" },
+    "KO": { "expectedReturn": 0.06, "volatility": 0.13, "dividendYield": 0.030, "sector": "Consumer" },
+    "COST": { "expectedReturn": 0.12, "volatility": 0.20, "dividendYield": 0.006, "sector": "Consumer" },
+    "WMT": { "expectedReturn": 0.08, "volatility": 0.15, "dividendYield": 0.014, "sector": "Consumer" },
+    "BND": { "expectedReturn": 0.03, "volatility": 0.04, "dividendYield": 0.032, "sector": "Bonds" },
+    "AGG": { "expectedReturn": 0.03, "volatility": 0.04, "dividendYield": 0.030, "sector": "Bonds" },
+    "TLT": { "expectedReturn": 0.04, "volatility": 0.12, "dividendYield": 0.035, "sector": "Bonds" },
+    "VTIP": { "expectedReturn": 0.03, "volatility": 0.03, "dividendYield": 0.028, "sector": "Bonds" },
+    "LQD": { "expectedReturn": 0.04, "volatility": 0.07, "dividendYield": 0.038, "sector": "Bonds" }
+  },
+  "sectorCorrelations": {
+    "Technology": { "Technology": 1.0, "Healthcare": 0.5, "Financials": 0.6, "Energy": 0.3, "Consumer": 0.55, "Bonds": -0.1 },
+    "Healthcare": { "Technology": 0.5, "Healthcare": 1.0, "Financials": 0.45, "Energy": 0.35, "Consumer": 0.5, "Bonds": 0.05 },
+    "Financials": { "Technology": 0.6, "Healthcare": 0.45, "Financials": 1.0, "Energy": 0.4, "Consumer": 0.5, "Bonds": 0.0 },
+    "Energy": { "Technology": 0.3, "Healthcare": 0.35, "Financials": 0.4, "Energy": 1.0, "Consumer": 0.3, "Bonds": -0.05 },
+    "Consumer": { "Technology": 0.55, "Healthcare": 0.5, "Financials": 0.5, "Energy": 0.3, "Consumer": 1.0, "Bonds": 0.1 },
+    "Bonds": { "Technology": -0.1, "Healthcare": 0.05, "Financials": 0.0, "Energy": -0.05, "Consumer": 0.1, "Bonds": 1.0 }
+  }
+}
