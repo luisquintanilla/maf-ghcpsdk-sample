@@ -14,6 +14,18 @@ namespace PortfolioTaxAdvisor;
 /// </summary>
 internal static class TaxTools
 {
+    private static readonly string ProjectDir =
+        Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
+
+    private static readonly string ChartsDir = InitDir("charts");
+
+    private static string InitDir(string name)
+    {
+        var dir = Path.Combine(ProjectDir, name);
+        Directory.CreateDirectory(dir);
+        return dir;
+    }
+
     private static readonly string DataDir = Path.Combine(AppContext.BaseDirectory, "data");
 
     // ── Data models ──────────────────────────────────────────────────────────
@@ -472,9 +484,7 @@ internal static class TaxTools
         .WithTraceInfo("Tax Optimization Savings Breakdown")
         .WithYAxisStyle<double, double, double>(Title: Plotly.NET.Title.init("Annual Tax ($)"));
 
-        var chartsDir = Path.Combine(Directory.GetCurrentDirectory(), "charts");
-        Directory.CreateDirectory(chartsDir);
-        var filePath = Path.Combine(chartsDir, "tax-savings.html");
+        var filePath = Path.Combine(ChartsDir, "tax-savings.html");
         Plotly.NET.GenericChartExtensions.SaveHtml(chart, filePath);
 
         return JsonSerializer.Serialize(new

@@ -3,7 +3,10 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using PortfolioTaxAdvisor;
 
-// ─── Sub-agent: Portfolio Analysis ────────────────────────────────────────────
+bool verbose = args.Contains("--verbose");
+bool debug = args.Contains("--debug");
+
+// ─── Sub-agent: Portfolio Analysis────────────────────────────────────────────
 
 await using var analysisClient = new CopilotClient();
 AIAgent analysisAgent = AnalysisAgentFactory.Create(analysisClient);
@@ -51,7 +54,19 @@ AIAgent orchestrator = orchestratorClient.AsAIAgent(
         "When presenting tax-loss harvesting candidates, always ask the user for approval " +
         "before considering the trades accepted. If wash sale warnings exist, highlight them prominently. " +
         "Present results in a clear, conversational way. " +
-        "Offer actionable observations and keep responses concise but insightful.");
+        "Offer actionable observations and keep responses concise but insightful. " +
+        "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+        "When you must use a technical term, explain it in parentheses " +
+        "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+        "Frame numbers in terms of real-world impact " +
+        "(e.g., \"This could save you about $3,200 per year\" not " +
+        "\"The tax alpha is 32 basis points\"). " +
+        "Structure your response with these sections when providing a comprehensive analysis: " +
+        "1. **At a Glance** — 3-bullet executive summary. " +
+        "2. **Your Portfolio Today** — current state in plain language. " +
+        "3. **What We Recommend** — specific actions with expected dollar impact. " +
+        "4. **Things to Watch** — risks explained simply. " +
+        "5. **Next Steps** — concrete actions to take.");
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 
@@ -81,6 +96,19 @@ Console.WriteLine("║  Press Ctrl+C to exit.                                   
 Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
 Console.WriteLine();
 
+var toolStatusMap = new Dictionary<string, string>
+{
+    ["portfolio_analyst"] = "📊 Analyzing your portfolio...",
+    ["tax_optimizer"] = "💰 Analyzing tax optimization...",
+    ["get_portfolio_summary"] = "📊 Retrieving portfolio summary...",
+    ["get_sector_breakdown"] = "📊 Calculating sector breakdown...",
+    ["get_top_holdings"] = "📊 Finding top holdings...",
+    ["optimize_asset_location"] = "⚙️  Optimizing where investments are held...",
+    ["find_harvest_candidates"] = "🔍 Finding tax-saving opportunities...",
+    ["compute_tax_savings"] = "💰 Calculating potential tax savings...",
+    ["render_tax_chart"] = "🎨 Generating tax savings chart...",
+};
+
 while (!cts.Token.IsCancellationRequested)
 {
     Console.ForegroundColor = ConsoleColor.Cyan;
@@ -101,6 +129,41 @@ while (!cts.Token.IsCancellationRequested)
         await foreach (AgentResponseUpdate update in
             orchestrator.RunStreamingAsync(input, session, cancellationToken: cts.Token))
         {
+            foreach (var content in update.Contents)
+            {
+                if (content is FunctionCallContent call)
+                {
+                    if (debug)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine($"\n  [Call: {call.Name}({FormatArgs(call.Arguments)})]");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        string status = toolStatusMap.GetValueOrDefault(call.Name, "⏳ Processing...");
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.Write($"\n  {status}");
+                        Console.ResetColor();
+                    }
+                }
+                else if (content is FunctionResultContent)
+                {
+                    if (debug)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine("  [Result received]");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.WriteLine(" ✅");
+                        Console.ResetColor();
+                    }
+                }
+            }
+
             if (update.ResponseId is null && update.Text.Length > 0)
                 Console.Write(update.Text);
         }
@@ -120,3 +183,9 @@ while (!cts.Token.IsCancellationRequested)
 }
 
 Console.WriteLine("\nGoodbye! 👋");
+
+static string FormatArgs(IDictionary<string, object?>? arguments)
+{
+    if (arguments is null || arguments.Count == 0) return "{}";
+    return "{" + string.Join(", ", arguments.Select(kvp => $"{kvp.Key}: {kvp.Value}")) + "}";
+}
