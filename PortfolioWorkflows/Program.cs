@@ -1,3 +1,4 @@
+using System.Text;
 using GitHub.Copilot.SDK;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
@@ -101,19 +102,21 @@ while (!cts.Token.IsCancellationRequested)
         }
         intent = intent.Trim().ToUpperInvariant();
 
+        var reportContent = new StringBuilder();
+
         if (intent.Contains("REBALANCE"))
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n▶ Running: Rebalancing Pipeline (Sequential)");
             Console.ResetColor();
-            await RunWorkflowAsync(sequentialWorkflow, input, verbose, debug, cts.Token);
+            await RunWorkflowAsync(sequentialWorkflow, input, verbose, debug, cts.Token, reportContent);
         }
         else if (intent.Contains("REVIEW"))
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n▶ Running: Annual Portfolio Review (Concurrent)");
             Console.ResetColor();
-            await RunWorkflowAsync(concurrentWorkflow, input, verbose, debug, cts.Token);
+            await RunWorkflowAsync(concurrentWorkflow, input, verbose, debug, cts.Token, reportContent);
         }
         else
         {
@@ -124,9 +127,45 @@ while (!cts.Token.IsCancellationRequested)
             await foreach (var update in chatAgent.RunStreamingAsync(input, chatSession, cancellationToken: cts.Token))
             {
                 if (update.ResponseId is null && update.Text.Length > 0)
+                {
                     Console.Write(update.Text);
+                    reportContent.Append(update.Text);
+                }
             }
             Console.WriteLine("\n");
+        }
+
+        if (reportContent.Length > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write("💾 Save report? (y/n): ");
+            Console.ResetColor();
+            var answer = Console.ReadLine()?.Trim();
+            if (answer?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var reportTitle = intent.Contains("REBALANCE") ? "Portfolio Rebalancing Report" :
+                                  intent.Contains("REVIEW") ? "Annual Portfolio Review" :
+                                  "Portfolio Analysis";
+                var htmlPath = ReportTools.GenerateHtmlReport(reportTitle, reportContent.ToString());
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"  📄 HTML report: {htmlPath}");
+                Console.ResetColor();
+
+                var pdfPath = ReportTools.GeneratePdfReport(reportTitle, reportContent.ToString());
+                if (pdfPath != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"  📄 PDF report:  {pdfPath}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine("  ℹ️  PDF generation skipped (requires pandoc + typst)");
+                    Console.ResetColor();
+                }
+            }
+            Console.WriteLine();
         }
     }
     catch (OperationCanceledException)
@@ -143,7 +182,7 @@ while (!cts.Token.IsCancellationRequested)
 
 Console.WriteLine("\nGoodbye! 👋");
 
-static async Task RunWorkflowAsync(Workflow workflow, string input, bool verbose, bool debug, CancellationToken ct)
+static async Task RunWorkflowAsync(Workflow workflow, string input, bool verbose, bool debug, CancellationToken ct, StringBuilder? reportCapture = null)
 {
     string? lastExecutorId = null;
 
@@ -168,7 +207,10 @@ static async Task RunWorkflowAsync(Workflow workflow, string input, bool verbose
             }
 
             if (!string.IsNullOrEmpty(e.Update.Text))
+            {
                 Console.Write(e.Update.Text);
+                if (reportCapture != null) reportCapture.Append(e.Update.Text);
+            }
         }
         else if (evt is ExecutorCompletedEvent ec)
         {

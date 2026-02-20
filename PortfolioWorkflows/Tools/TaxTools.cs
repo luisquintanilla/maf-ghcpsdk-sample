@@ -476,10 +476,16 @@ internal static class TaxTools
         var filePath = Path.Combine(ChartsDir, "tax-savings.html");
         Plotly.NET.GenericChartExtensions.SaveHtml(chart, filePath);
 
+        var interpretation = $"This waterfall chart breaks down your annual tax impact. " +
+            $"You're currently paying about ${totalDrag:N0} per year in portfolio taxes. " +
+            $"By optimizing where you hold different investments, you could save " +
+            $"approximately ${totalSavings:N0} per year.";
+
         return JsonSerializer.Serialize(new
         {
             chartPath = filePath,
-            message = "Waterfall chart saved showing tax optimization savings by category."
+            message = "Waterfall chart saved showing tax optimization savings by category.",
+            interpretation
         });
     }
 }

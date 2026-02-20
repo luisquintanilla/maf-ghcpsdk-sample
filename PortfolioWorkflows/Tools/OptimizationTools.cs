@@ -208,7 +208,13 @@ internal static class OptimizationTools
         string htmlPath = Path.Combine(ChartsDir, "efficient-frontier.html");
         Plotly.NET.GenericChartExtensions.SaveHtml(combined, htmlPath);
 
-        return JsonSerializer.Serialize(new { chartPath = htmlPath, points = frontierVols.Count });
+        var interpretation = $"This chart shows the efficient frontier — the best possible " +
+            $"combinations of risk and return for your portfolio. Your current portfolio " +
+            $"(equal-weight) has {currentRet:F1}% expected return at {currentVol:F1}% risk. " +
+            $"The frontier shows you could potentially improve your risk-return tradeoff " +
+            $"by optimizing your asset allocation.";
+
+        return JsonSerializer.Serialize(new { chartPath = htmlPath, points = frontierVols.Count, interpretation });
     }
 
     private static string SolveWithZ3(List<AssetData> assets, ProfileData profile, double maxVol)
