@@ -242,11 +242,21 @@ internal static class RetirementTools
         string filePath = Path.Combine(ChartsDir, "probability-cone.html");
         Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, filePath);
 
+        var p50Final = percentiles["p50"].Last();
+        var p10Final = percentiles["p10"].Last();
+        var p90Final = percentiles["p90"].Last();
+        var interpretation = $"This probability cone shows 10,000 simulated futures for your portfolio. " +
+            $"In the most likely scenario (middle line), your portfolio reaches ${p50Final/1_000_000:F1}M. " +
+            $"In a bad market (bottom), it could be ${p10Final/1_000_000:F1}M. " +
+            $"In a strong market (top), it could reach ${p90Final/1_000_000:F1}M. " +
+            $"The dashed line shows your ${2_000_000/1_000_000:F0}M goal.";
+
         return JsonSerializer.Serialize(new
         {
             chart = "probability-cone",
             savedTo = filePath,
-            message = "Probability cone chart saved. Open the HTML file in a browser to view."
+            message = "Probability cone chart saved. Open the HTML file in a browser to view.",
+            interpretation
         });
     }
 
@@ -284,11 +294,16 @@ internal static class RetirementTools
         string filePath = Path.Combine(ChartsDir, "strategy-comparison.html");
         Plotly.NET.CSharp.GenericChartExtensions.SaveHtml(chart, filePath);
 
+        var interpretation = "This chart compares three retirement withdrawal strategies side by side. " +
+            "Look at the 'Success Rate' bars — that's the chance your money lasts through retirement. " +
+            "Higher income means more spending each year, but check if the success rate is still comfortable for you.";
+
         return JsonSerializer.Serialize(new
         {
             chart = "strategy-comparison",
             savedTo = filePath,
-            message = "Strategy comparison chart saved. Open the HTML file in a browser to view."
+            message = "Strategy comparison chart saved. Open the HTML file in a browser to view.",
+            interpretation
         });
     }
 

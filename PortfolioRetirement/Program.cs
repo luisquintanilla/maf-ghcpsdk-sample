@@ -1,3 +1,4 @@
+using System.Text;
 using GitHub.Copilot.SDK;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
@@ -136,6 +137,7 @@ while (!cts.Token.IsCancellationRequested)
 
     try
     {
+        var reportContent = new StringBuilder();
         await foreach (AgentResponseUpdate update in
             orchestrator.RunStreamingAsync(input, session, cancellationToken: cts.Token))
         {
@@ -175,10 +177,43 @@ while (!cts.Token.IsCancellationRequested)
             }
 
             if (update.ResponseId is null && update.Text.Length > 0)
+            {
                 Console.Write(update.Text);
+                reportContent.Append(update.Text);
+            }
         }
 
         Console.WriteLine("\n");
+
+        if (reportContent.Length > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.Write("💾 Save report? (y/n): ");
+            Console.ResetColor();
+            var answer = Console.ReadLine()?.Trim();
+            if (answer?.Equals("y", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                var htmlPath = ReportTools.GenerateHtmlReport("Retirement Planning Report", reportContent.ToString());
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"  📄 HTML report: {htmlPath}");
+                Console.ResetColor();
+
+                var pdfPath = ReportTools.GeneratePdfReport("Retirement Planning Report", reportContent.ToString());
+                if (pdfPath != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"  📄 PDF report:  {pdfPath}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    Console.WriteLine("  ℹ️  PDF generation skipped (requires pandoc + typst)");
+                    Console.ResetColor();
+                }
+            }
+            Console.WriteLine();
+        }
     }
     catch (OperationCanceledException)
     {
