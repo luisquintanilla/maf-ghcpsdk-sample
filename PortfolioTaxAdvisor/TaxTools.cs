@@ -487,10 +487,20 @@ internal static class TaxTools
         var filePath = Path.Combine(ChartsDir, "tax-savings.html");
         Plotly.NET.GenericChartExtensions.SaveHtml(chart, filePath);
 
+        var interpretation = $"This waterfall chart breaks down your annual tax impact. " +
+            $"You're currently paying about ${totalDrag:N0} per year in portfolio taxes. " +
+            $"By optimizing where you hold different investments (tax-efficient placement), " +
+            $"you could save approximately ${totalSavings:N0} per year — that's real money " +
+            $"back in your pocket. The biggest savings come from " +
+            (divShelter >= growthRoth && divShelter >= bondShelter ? "sheltering dividend-paying stocks in tax-advantaged accounts." :
+             growthRoth >= bondShelter ? "holding growth investments in Roth accounts for tax-free gains." :
+             "moving bond interest into tax-sheltered accounts.");
+
         return JsonSerializer.Serialize(new
         {
             chartPath = filePath,
-            message = "Waterfall chart saved showing tax optimization savings by category."
+            message = "Waterfall chart saved showing tax optimization savings by category.",
+            interpretation
         });
     }
 }
