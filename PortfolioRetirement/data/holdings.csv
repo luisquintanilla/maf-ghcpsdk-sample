@@ -1,0 +1,26 @@
+Symbol,Name,Sector,Shares,PurchasePrice,CurrentPrice,AccountType
+AAPL,Apple Inc,Technology,50,142.50,189.75,Taxable
+MSFT,Microsoft Corp,Technology,35,280.00,415.20,Roth
+NVDA,NVIDIA Corp,Technology,20,450.00,875.30,Taxable
+GOOGL,Alphabet Inc,Technology,15,120.00,172.45,Traditional
+AMZN,Amazon.com Inc,Technology,25,130.00,185.60,Roth
+JNJ,Johnson & Johnson,Healthcare,40,160.00,155.80,Traditional
+UNH,UnitedHealth Group,Healthcare,12,480.00,525.40,Taxable
+PFE,Pfizer Inc,Healthcare,100,42.00,27.50,Taxable
+ABBV,AbbVie Inc,Healthcare,30,145.00,178.90,Traditional
+JPM,JPMorgan Chase,Financials,25,135.00,198.50,Taxable
+GS,Goldman Sachs,Financials,10,320.00,465.75,Roth
+BRK.B,Berkshire Hathaway,Financials,20,300.00,410.20,Taxable
+V,Visa Inc,Financials,18,220.00,278.30,Traditional
+XOM,Exxon Mobil,Energy,45,85.00,108.40,Taxable
+CVX,Chevron Corp,Energy,30,150.00,158.75,Traditional
+NEE,NextEra Energy,Energy,35,72.00,65.30,Roth
+PG,Procter & Gamble,Consumer,28,140.00,168.25,Taxable
+KO,Coca-Cola Co,Consumer,60,55.00,62.40,Traditional
+COST,Costco Wholesale,Consumer,8,480.00,725.50,Roth
+WMT,Walmart Inc,Consumer,35,145.00,172.80,Taxable
+BND,Vanguard Total Bond,Bonds,150,78.00,72.50,Traditional
+AGG,iShares Core US Agg,Bonds,120,100.00,96.80,Traditional
+TLT,iShares 20+ Year,Bonds,80,105.00,92.40,Roth
+VTIP,Vanguard TIPS,Bonds,100,48.00,49.20,Traditional
+LQD,iShares IG Corporate,Bonds,90,112.00,108.50,Taxable

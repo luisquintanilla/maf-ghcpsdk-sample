@@ -1,0 +1,19 @@
+{
+  "name": "Alex Johnson",
+  "age": 42,
+  "retirementAge": 60,
+  "riskTolerance": "moderate",
+  "maxVolatility": 0.15,
+  "maxSinglePosition": 0.08,
+  "maxSectorWeight": 0.35,
+  "minBondAllocation": 0.20,
+  "monthlyContribution": 2000,
+  "accounts": {
+    "taxable": { "balance": 180000 },
+    "roth": { "balance": 120000 },
+    "traditional": { "balance": 250000 }
+  },
+  "goals": [
+    { "name": "Retirement", "targetAmount": 2000000, "targetAge": 60 }
+  ]
+}

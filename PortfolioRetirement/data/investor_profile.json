@@ -1,0 +1,28 @@
+{
+  "name": "Alex Johnson",
+  "age": 42,
+  "retirementAge": 60,
+  "lifeExpectancy": 90,
+  "riskTolerance": "moderate",
+  "monthlyContribution": 2000,
+  "currentAnnualExpenses": 72000,
+  "retirementExpenses": 60000,
+  "inflationAssumption": 0.025,
+  "accounts": {
+    "taxable": { "balance": 180000 },
+    "roth": { "balance": 120000 },
+    "traditional": { "balance": 250000 }
+  },
+  "socialSecurity": {
+    "estimatedMonthlyAt62": 1800,
+    "estimatedMonthlyAt67": 2600,
+    "estimatedMonthlyAt70": 3250,
+    "spouseEstimatedMonthlyAt62": 1200,
+    "spouseEstimatedMonthlyAt67": 1750,
+    "spouseEstimatedMonthlyAt70": 2200,
+    "spouseAge": 40
+  },
+  "goals": [
+    { "name": "Retirement", "targetAmount": 2000000, "targetAge": 60 }
+  ]
+}
