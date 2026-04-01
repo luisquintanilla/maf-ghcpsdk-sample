@@ -41,21 +41,30 @@ AIFunction timeTool = AIFunctionFactory.Create(
 
 await using var client = new CopilotClient();
 
+var sessionConfig = new SessionConfig
+{
+    Tools = [greetTool, timeTool],
+    SystemMessage = new SystemMessageConfig
+    {
+        Content =
+            "You are a friendly greeting assistant. " +
+            "Use the get_greeting tool whenever asked to greet or say hello to someone. " +
+            "Use the get_current_time tool whenever asked about the current time or date. " +
+            "Keep your responses concise and warm. " +
+            "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+            "When you must use a technical term, explain it in parentheses " +
+            "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+            "Frame numbers in terms of real-world impact " +
+            "(e.g., \"This could save you about $3,200 per year\" not " +
+            "\"The tax alpha is 32 basis points\")."
+    },
+    OnPermissionRequest = PermissionHandler.ApproveAll,
+};
+
 AIAgent agent = client.AsAIAgent(
+    sessionConfig,
     name: "Greeting Agent",
-    description: "A friendly assistant that greets people and reports the current time",
-    tools: [greetTool, timeTool],
-    instructions:
-        "You are a friendly greeting assistant. " +
-        "Use the get_greeting tool whenever asked to greet or say hello to someone. " +
-        "Use the get_current_time tool whenever asked about the current time or date. " +
-        "Keep your responses concise and warm. " +
-        "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
-        "When you must use a technical term, explain it in parentheses " +
-        "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
-        "Frame numbers in terms of real-world impact " +
-        "(e.g., \"This could save you about $3,200 per year\" not " +
-        "\"The tax alpha is 32 basis points\").");
+    description: "A friendly assistant that greets people and reports the current time");
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 //

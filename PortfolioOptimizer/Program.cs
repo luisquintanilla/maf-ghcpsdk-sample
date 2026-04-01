@@ -52,34 +52,41 @@ AIFunction optimizationFunction = optimizationAgent.AsAIFunction(
 await using var orchestratorClient = new CopilotClient();
 
 AIAgent orchestrator = orchestratorClient.AsAIAgent(
+    new SessionConfig
+    {
+        Tools = [analysisFunction, optimizationFunction],
+        SystemMessage = new SystemMessageConfig
+        {
+            Content =
+                "You are a portfolio optimization advisor that helps users understand and improve " +
+                "their investment allocations. You have two specialist agents at your disposal: " +
+                "1) portfolio_analyst — for retrieving current portfolio data (summaries, sectors, holdings). " +
+                "2) portfolio_optimizer — for running Z3 constraint optimization, computing portfolio statistics, " +
+                "and generating efficient frontier charts. " +
+                "When users ask about their current portfolio, delegate to portfolio_analyst. " +
+                "When users ask for optimization, risk analysis, or charts, delegate to portfolio_optimizer. " +
+                "After running an optimization, always present the recommended allocation to the user " +
+                "and ask for confirmation before considering it accepted. " +
+                "Present results in a clear, conversational way with actual numbers. " +
+                "Offer actionable observations and explain risk-return trade-offs. " +
+                "Keep responses concise but insightful. " +
+                "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+                "When you must use a technical term, explain it in parentheses " +
+                "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+                "Frame numbers in terms of real-world impact " +
+                "(e.g., \"This could save you about $3,200 per year\" not " +
+                "\"The tax alpha is 32 basis points\"). " +
+                "Structure your response with these sections when providing a comprehensive analysis: " +
+                "1. **At a Glance** — 3-bullet executive summary. " +
+                "2. **Your Portfolio Today** — current state in plain language. " +
+                "3. **What We Recommend** — specific actions with expected dollar impact. " +
+                "4. **Things to Watch** — risks explained simply. " +
+                "5. **Next Steps** — concrete actions to take."
+        },
+        OnPermissionRequest = PermissionHandler.ApproveAll,
+    },
     name: "Portfolio Optimizer",
-    description: "A portfolio optimization advisor that analyses holdings and finds optimal allocations",
-    tools: [analysisFunction, optimizationFunction],
-    instructions:
-        "You are a portfolio optimization advisor that helps users understand and improve " +
-        "their investment allocations. You have two specialist agents at your disposal: " +
-        "1) portfolio_analyst — for retrieving current portfolio data (summaries, sectors, holdings). " +
-        "2) portfolio_optimizer — for running Z3 constraint optimization, computing portfolio statistics, " +
-        "and generating efficient frontier charts. " +
-        "When users ask about their current portfolio, delegate to portfolio_analyst. " +
-        "When users ask for optimization, risk analysis, or charts, delegate to portfolio_optimizer. " +
-        "After running an optimization, always present the recommended allocation to the user " +
-        "and ask for confirmation before considering it accepted. " +
-        "Present results in a clear, conversational way with actual numbers. " +
-        "Offer actionable observations and explain risk-return trade-offs. " +
-        "Keep responses concise but insightful. " +
-        "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
-        "When you must use a technical term, explain it in parentheses " +
-        "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
-        "Frame numbers in terms of real-world impact " +
-        "(e.g., \"This could save you about $3,200 per year\" not " +
-        "\"The tax alpha is 32 basis points\"). " +
-        "Structure your response with these sections when providing a comprehensive analysis: " +
-        "1. **At a Glance** — 3-bullet executive summary. " +
-        "2. **Your Portfolio Today** — current state in plain language. " +
-        "3. **What We Recommend** — specific actions with expected dollar impact. " +
-        "4. **Things to Watch** — risks explained simply. " +
-        "5. **Next Steps** — concrete actions to take.");
+    description: "A portfolio optimization advisor that analyses holdings and finds optimal allocations");
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 

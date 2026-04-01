@@ -41,21 +41,28 @@ internal static class RetirementAgentFactory
             description: "Renders a grouped bar chart comparing withdrawal strategies on success rate, median income, and median remaining balance");
 
         return client.AsAIAgent(
+            new SessionConfig
+            {
+                Tools = [monteCarloTool, withdrawalTool, ssTool, coneTool, strategyChartTool],
+                SystemMessage = new SystemMessageConfig
+                {
+                    Content =
+                        "You are a retirement planning specialist. Use your tools to provide " +
+                        "data-driven retirement analysis. Always include actual simulation results " +
+                        "from the tools — never fabricate numbers. When presenting withdrawal strategies, " +
+                        "clearly explain the trade-offs of each approach. " +
+                        "Format currency values with dollar signs and two decimal places. " +
+                        "Keep responses factual and insightful. " +
+                        "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
+                        "When you must use a technical term, explain it in parentheses " +
+                        "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
+                        "Frame numbers in terms of real-world impact " +
+                        "(e.g., \"This could save you about $3,200 per year\" not " +
+                        "\"The tax alpha is 32 basis points\")."
+                },
+                OnPermissionRequest = PermissionHandler.ApproveAll,
+            },
             name: "Retirement Planning Agent",
-            description: "Provides retirement planning analysis including Monte Carlo simulations, withdrawal strategy comparisons, Social Security optimization, and visualizations",
-            tools: [monteCarloTool, withdrawalTool, ssTool, coneTool, strategyChartTool],
-            instructions:
-                "You are a retirement planning specialist. Use your tools to provide " +
-                "data-driven retirement analysis. Always include actual simulation results " +
-                "from the tools — never fabricate numbers. When presenting withdrawal strategies, " +
-                "clearly explain the trade-offs of each approach. " +
-                "Format currency values with dollar signs and two decimal places. " +
-                "Keep responses factual and insightful. " +
-                "Write for someone who is NOT a financial expert. Use everyday language; avoid jargon. " +
-                "When you must use a technical term, explain it in parentheses " +
-                "(e.g., \"diversification (spreading investments to reduce risk)\"). " +
-                "Frame numbers in terms of real-world impact " +
-                "(e.g., \"This could save you about $3,200 per year\" not " +
-                "\"The tax alpha is 32 basis points\").");
+            description: "Provides retirement planning analysis including Monte Carlo simulations, withdrawal strategy comparisons, Social Security optimization, and visualizations");
     }
 }

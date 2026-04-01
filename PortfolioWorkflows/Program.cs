@@ -38,31 +38,45 @@ Workflow concurrentWorkflow = AgentWorkflowBuilder.BuildConcurrent(
 // ─── Intent classification agent ──────────────────────────────────────────
 await using var triageClient = new CopilotClient();
 AIAgent triageAgent = triageClient.AsAIAgent(
+    new SessionConfig
+    {
+        Tools = Array.Empty<AIFunction>(),
+        SystemMessage = new SystemMessageConfig
+        {
+            Content =
+                "You classify user requests into exactly one category. " +
+                "Respond with ONLY the category name — no explanation, no punctuation.\n\n" +
+                "Categories:\n" +
+                "REBALANCE — requests about portfolio rebalancing, optimization, " +
+                "allocation changes, improving portfolio, adjusting weights\n" +
+                "REVIEW — requests about annual review, portfolio health check, " +
+                "comprehensive assessment, combined analysis across areas\n" +
+                "QUESTION — general questions, greetings, clarifications, or " +
+                "requests that don't clearly fit REBALANCE or REVIEW"
+        },
+        OnPermissionRequest = PermissionHandler.ApproveAll,
+    },
     name: "Intent Classifier",
-    description: "Classifies user intent into workflow categories",
-    tools: Array.Empty<AIFunction>(),
-    instructions:
-        "You classify user requests into exactly one category. " +
-        "Respond with ONLY the category name — no explanation, no punctuation.\n\n" +
-        "Categories:\n" +
-        "REBALANCE — requests about portfolio rebalancing, optimization, " +
-        "allocation changes, improving portfolio, adjusting weights\n" +
-        "REVIEW — requests about annual review, portfolio health check, " +
-        "comprehensive assessment, combined analysis across areas\n" +
-        "QUESTION — general questions, greetings, clarifications, or " +
-        "requests that don't clearly fit REBALANCE or REVIEW");
+    description: "Classifies user intent into workflow categories");
 
 // ─── Conversational fallback agent ────────────────────────────────────────
 await using var chatClient = new CopilotClient();
 AIAgent chatAgent = chatClient.AsAIAgent(
+    new SessionConfig
+    {
+        Tools = Array.Empty<AIFunction>(),
+        SystemMessage = new SystemMessageConfig
+        {
+            Content =
+                "You are a friendly portfolio assistant. Answer general questions about " +
+                "the user's portfolio. If the user seems to want a full rebalancing or " +
+                "comprehensive review, let them know they can ask for that. " +
+                "Keep responses concise and helpful."
+        },
+        OnPermissionRequest = PermissionHandler.ApproveAll,
+    },
     name: "Portfolio Assistant",
-    description: "Answers general portfolio questions",
-    tools: Array.Empty<AIFunction>(),
-    instructions:
-        "You are a friendly portfolio assistant. Answer general questions about " +
-        "the user's portfolio. If the user seems to want a full rebalancing or " +
-        "comprehensive review, let them know they can ask for that. " +
-        "Keep responses concise and helpful.");
+    description: "Answers general portfolio questions");
 
 // ─── Ctrl+C handling─────────────────────────────────────────────────────
 using var cts = new CancellationTokenSource();

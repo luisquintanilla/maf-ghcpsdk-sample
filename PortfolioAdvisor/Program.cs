@@ -33,17 +33,24 @@ AIFunction analysisFunction = analysisAgent.AsAIFunction(
 await using var orchestratorClient = new CopilotClient();
 
 AIAgent orchestrator = orchestratorClient.AsAIAgent(
+    new SessionConfig
+    {
+        Tools = [analysisFunction],
+        SystemMessage = new SystemMessageConfig
+        {
+            Content =
+                "You are a friendly, knowledgeable personal portfolio advisor. " +
+                "When users ask about their portfolio, holdings, sectors, or performance, " +
+                "delegate to the portfolio_analyst tool to get real data — never make up numbers. " +
+                "Present the results in a clear, conversational way. " +
+                "Offer actionable observations (e.g., concentration risk, underperformers). " +
+                "When you spot something noteworthy, ask the user if they'd like to explore it further. " +
+                "Keep responses concise but insightful."
+        },
+        OnPermissionRequest = PermissionHandler.ApproveAll,
+    },
     name: "Portfolio Advisor",
-    description: "A personal investment portfolio advisor that helps users understand their holdings",
-    tools: [analysisFunction],
-    instructions:
-        "You are a friendly, knowledgeable personal portfolio advisor. " +
-        "When users ask about their portfolio, holdings, sectors, or performance, " +
-        "delegate to the portfolio_analyst tool to get real data — never make up numbers. " +
-        "Present the results in a clear, conversational way. " +
-        "Offer actionable observations (e.g., concentration risk, underperformers). " +
-        "When you spot something noteworthy, ask the user if they'd like to explore it further. " +
-        "Keep responses concise but insightful.");
+    description: "A personal investment portfolio advisor that helps users understand their holdings");
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 

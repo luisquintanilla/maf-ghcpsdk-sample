@@ -30,14 +30,21 @@ internal static class AnalysisAgentFactory
             description: "Returns the top N holdings by current market value with gain/loss details");
 
         return client.AsAIAgent(
+            new SessionConfig
+            {
+                Tools = [summaryTool, sectorTool, topHoldingsTool],
+                SystemMessage = new SystemMessageConfig
+                {
+                    Content =
+                        "You are a portfolio data analyst. When asked to analyse a portfolio, " +
+                        "use your tools to retrieve the data and present it clearly. " +
+                        "Always include actual numbers from the tools — never fabricate data. " +
+                        "Format currency values with dollar signs and two decimal places. " +
+                        "Keep responses factual and data-driven."
+                },
+                OnPermissionRequest = PermissionHandler.ApproveAll,
+            },
             name: "Portfolio Analysis Agent",
-            description: "Analyses portfolio holdings data including summaries, sector breakdowns, and top holdings",
-            tools: [summaryTool, sectorTool, topHoldingsTool],
-            instructions:
-                "You are a portfolio data analyst. When asked to analyse a portfolio, " +
-                "use your tools to retrieve the data and present it clearly. " +
-                "Always include actual numbers from the tools — never fabricate data. " +
-                "Format currency values with dollar signs and two decimal places. " +
-                "Keep responses factual and data-driven.");
+            description: "Analyses portfolio holdings data including summaries, sector breakdowns, and top holdings");
     }
 }
